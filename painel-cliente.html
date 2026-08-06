@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Área do Aluno</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; min-height: 100vh; }
+    header { background-color: #1e293b; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+    header h1 { color: #10b981; font-size: 22px; }
+    .btn-sair { background: transparent; color: #ef4444; border: 1px solid #ef4444; padding: 8px 15px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+    .btn-sair:hover { background: #ef4444; color: white; }
+    .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; text-align: center; }
+    .search-box { display: flex; gap: 10px; margin-bottom: 40px; justify-content: center; }
+    .search-box input { padding: 15px; width: 60%; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 16px; }
+    .search-box button { padding: 15px 30px; background: #10b981; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; }
+    .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+    .card { background: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155; text-align: left; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-5px); border-color: #10b981; }
+    .card h3 { margin-bottom: 10px; color: #34d399; }
+    .card button { width: 100%; padding: 10px; margin-top: 15px; background: #10b981; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: bold; }
+    
+    /* MODAL DE PAGAMENTO */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: #1e293b; padding: 30px; border-radius: 12px; width: 400px; text-align: left; }
+    .modal-content input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; }
+    .btn-pay { width: 100%; padding: 15px; background: #3b82f6; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; }
+    .btn-cancel { width: 100%; padding: 10px; background: transparent; border: none; color: #94a3b8; cursor: pointer; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1><i class="fa-solid fa-dumbbell"></i> Área do Aluno</h1>
+    <div>
+      <span id="nome-aluno" style="margin-right: 15px; color: #94a3b8;"></span>
+      <button class="btn-sair" onclick="sair()"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <h2>Encontre sua Academia</h2>
+    <p style="color: #94a3b8; margin-bottom: 20px;">Pesquise pelo nome da academia para ver os planos.</p>
+    
+    <div class="search-box">
+      <input type="text" id="input-busca" placeholder="Ex: Gym, Fit, Iron...">
+      <button onclick="buscarAcademias()"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
+    </div>
+
+    <div id="resultados-academias" class="grid-cards"></div>
+    
+    <div id="sessao-planos" style="display: none; margin-top: 40px;">
+      <h2 id="titulo-planos">Planos Disponíveis</h2>
+      <button onclick="voltarBusca()" style="margin-top: 10px; background:transparent; color:#94a3b8; border:none; cursor:pointer;">&larr; Voltar para academias</button>
+      <div id="grid-planos" class="grid-cards"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-pagamento">
+    <div class="modal-content">
+      <h3 style="margin-bottom: 20px;"><i class="fa-regular fa-credit-card"></i> Pagamento Seguro</h3>
+      <p id="nome-plano-modal" style="color: #34d399; margin-bottom: 20px; font-weight: bold;"></p>
+      
+      <input type="text" placeholder="Nome impresso no cartão">
+      <input type="text" placeholder="Número do Cartão" maxlength="16">
+      <div style="display: flex; gap: 10px;">
+        <input type="text" placeholder="MM/AA">
+        <input type="text" placeholder="CVV">
+      </div>
+      
+      <button class="btn-pay" onclick="simularPagamento()">Pagar e Matricular</button>
+      <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+    const nome = localStorage.getItem('nomeUsuario') || 'Aluno';
+
+    // SEGURANÇA: Verifica o cargo
+    if (!token || role !== 'CLIENTE') {
+      alert('Acesso negado.');
+      window.location.href = 'index.html';
+    }
+
+    document.getElementById('nome-aluno').innerText = `Olá, ${nome}`;
+
+    async function buscarAcademias() {
+      // DADOS MOCKADOS (Simulados para teste de front-end)
+      const academiasMock = [
+        { id: '1', name: 'Iron Works Gym' },
+        { id: '2', name: 'Fit Life Studio' }
+      ];
+
+      const div = document.getElementById('resultados-academias');
+      div.innerHTML = '';
+      document.getElementById('sessao-planos').style.display = 'none';
+
+      academiasMock.forEach(acad => {
+        div.innerHTML += `
+          <div class="card">
+            <h3>${acad.name}</h3>
+            <button onclick="verPlanos('${acad.id}', '${acad.name}')">Ver Planos</button>
+          </div>
+        `;
+      });
+    }
+
+    async function verPlanos(idAcademia, nomeAcademia) {
+      document.getElementById('resultados-academias').innerHTML = '';
+      document.getElementById('sessao-planos').style.display = 'block';
+      document.getElementById('titulo-planos').innerText = `Planos de ${nomeAcademia}`;
+
+      // DADOS MOCKADOS (Simulados)
+      const planosMock = [
+        { id: 'p1', nome: 'Plano Mensal', preco: 'R$ 99,90', descricao: 'Acesso livre' },
+        { id: 'p2', nome: 'Plano Anual', preco: 'R$ 890,00', descricao: 'Acesso total' }
+      ];
+
+      const grid = document.getElementById('grid-planos');
+      grid.innerHTML = '';
+
+      planosMock.forEach(plano => {
+        grid.innerHTML += `
+          <div class="card" style="border-color: #3b82f6;">
+            <h3>${plano.nome}</h3>
+            <h2 style="margin: 10px 0;">${plano.preco}</h2>
+            <p style="color: #94a3b8; font-size: 14px;">${plano.descricao}</p>
+            <button style="background: #3b82f6;" onclick="abrirModal('${plano.nome}', '${plano.preco}')">Assinar</button>
+          </div>
+        `;
+      });
+    }
+
+    function voltarBusca() {
+      document.getElementById('sessao-planos').style.display = 'none';
+      buscarAcademias();
+    }
+
+    function abrirModal(nomePlano, preco) {
+      document.getElementById('nome-plano-modal').innerText = `${nomePlano} - ${preco}`;
+      document.getElementById('modal-pagamento').style.display = 'flex';
+    }
+
+    function fecharModal() {
+      document.getElementById('modal-pagamento').style.display = 'none';
+    }
+
+    function simularPagamento() {
+      const btn = document.querySelector('.btn-pay');
+      btn.innerText = 'Processando...';
+      setTimeout(() => {
+        alert('✅ Pagamento aprovado! Matrícula realizada.');
+        fecharModal();
+        window.location.reload();
+      }, 2000);
+    }
+
+    function sair() {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>

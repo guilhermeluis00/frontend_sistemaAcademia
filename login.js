@@ -18,13 +18,16 @@ document.getElementById('formLogin').addEventListener('submit', async (evento) =
       divMensagem.style.color = '#00ff64';
       divMensagem.innerText = 'Login aprovado! Entrando...';
       
-      // Guarda o token e o nome no navegador
-      localStorage.setItem('tokenAcademia', dados.token);
+      // 🌟 Salva o token, o cargo (role) e o nome no navegador
+      localStorage.setItem('token', dados.token);
+      localStorage.setItem('role', dados.role);
       localStorage.setItem('nomeUsuario', dados.user.name);
 
-      // Redireciona com base no cargo (DONO ou CLIENTE)
+      // 🌟 Redireciona corretamente com base no cargo (SUPER, DONO ou CLIENTE)
       setTimeout(() => {
-        if (dados.role === 'DONO') {
+        if (dados.role === 'SUPER') {
+          window.location.href = 'painel-super.html';
+        } else if (dados.role === 'DONO') {
           window.location.href = 'painel-dono.html';
         } else {
           window.location.href = 'painel-cliente.html';

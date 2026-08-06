@@ -2,21 +2,116 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Painel do Dono - Academia</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel da Academia - Gerenciar Planos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; min-height: 100vh; }
+    header { background-color: #1e293b; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+    header h1 { color: #3b82f6; font-size: 22px; }
+    .btn-sair { background: transparent; color: #ef4444; border: 1px solid #ef4444; padding: 8px 15px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+    .btn-sair:hover { background: #ef4444; color: white; }
+    .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+    .card-form { background: #1e293b; padding: 30px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .card-form h2 { margin-bottom: 20px; color: #38bdf8; font-size: 20px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; color: #94a3b8; font-size: 14px; }
+    .form-group input, .form-group textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 16px; }
+    .btn-submit { width: 100%; padding: 15px; background: #3b82f6; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; transition: 0.3s; }
+    .btn-submit:hover { background: #2563eb; }
+    #mensagem { margin-top: 15px; text-align: center; font-weight: bold; }
+  </style>
 </head>
 <body>
-  <div class="container" style="max-width: 600px;">
-    <h2>Painel Administrativo (Dono)</h2>
-    <p id="saudacao" style="font-size: 18px; margin-bottom: 20px;"></p>
-    <p>Aqui você poderá gerenciar alunos, planos e cadastros da academia.</p>
-    <button onclick="sair()" style="background-color: #ff4444; color: white;">Sair</button>
+
+  <header>
+    <h1><i class="fa-solid fa-building"></i> Painel da Academia</h1>
+    <div>
+      <span id="nome-dono" style="margin-right: 15px; color: #94a3b8;"></span>
+      <button class="btn-sair" onclick="sair()"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card-form">
+      <h2><i class="fa-solid fa-tag"></i> Criar Novo Plano</h2>
+      <p style="color: #94a3b8; margin-bottom: 20px; font-size: 14px;">Defina os valores e benefícios para os alunos.</p>
+      
+      <form id="form-plano">
+        <div class="form-group">
+          <label>Nome do Plano (Ex: Trimestral, Anual)</label>
+          <input type="text" id="nome" required>
+        </div>
+        <div class="form-group">
+          <label>Preço (R$)</label>
+          <input type="number" id="preco" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label>Descrição e Benefícios</label>
+          <textarea id="descricao" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn-submit">Cadastrar Plano</button>
+      </form>
+      <div id="mensagem"></div>
+    </div>
   </div>
 
   <script>
-    // Puxa o nome guardado no navegador
-    const nome = localStorage.getItem('nomeUsuario');
-    document.getElementById('saudacao').innerText = `Bem-vindo, ${nome || 'Gestor'}! 💪`;
+    let token = localStorage.getItem('token') || localStorage.getItem('tokenAcademia');
+    const role = localStorage.getItem('role');
+    const nome = localStorage.getItem('nomeUsuario') || 'Dono';
+
+    // Se o token for a string "null" ou "undefined", limpa para evitar erro 401
+    if (token === 'null' || token === 'undefined' || !token) {
+      console.warn("Token inválido ou ausente no localStorage.");
+      localStorage.clear();
+      alert('Sessão expirada ou inválida. Faça login novamente.');
+      window.location.href = 'index.html';
+    }
+
+    console.log("Token ativo sendo enviado:", token);
+
+    // SEGURANÇA: Verifica o cargo (Donos e Supers podem acessar)
+    if (role !== 'DONO' && role !== 'SUPER') {
+      alert('Acesso negado. Apenas donos de academia podem acessar esta página.');
+      window.location.href = 'index.html';
+    }
+
+    document.getElementById('nome-dono').innerText = `Olá, ${nome}`;
+
+    document.getElementById('form-plano').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nomePlano = document.getElementById('nome').value;
+      const preco = document.getElementById('preco').value;
+      const descricao = document.getElementById('descricao').value;
+      const msgDiv = document.getElementById('mensagem');
+      
+      try {
+        const resposta = await fetch('http://localhost:3000/planos', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json', 
+            'Authorization': `Bearer ${token}` 
+          },
+          body: JSON.stringify({ nome: nomePlano, preco: preco, descricao: descricao })
+        });
+
+        if (resposta.ok) {
+          msgDiv.style.color = '#10b981'; 
+          msgDiv.innerText = '✅ Plano cadastrado com sucesso!';
+          document.getElementById('form-plano').reset();
+        } else {
+          const dados = await resposta.json();
+          msgDiv.style.color = '#ef4444'; 
+          msgDiv.innerText = '❌ Erro: ' + (dados.error || 'Erro desconhecido');
+        }
+      } catch (error) {
+        msgDiv.style.color = '#ef4444'; 
+        msgDiv.innerText = '❌ Erro de conexão com o servidor.';
+      }
+    });
 
     function sair() {
       localStorage.clear();
