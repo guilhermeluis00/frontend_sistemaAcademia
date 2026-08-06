@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel do Aluno - Academia</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container" style="max-width: 600px;">
+    <h2>Área do Aluno</h2>
+    <p id="saudacao" style="font-size: 18px; margin-bottom: 20px;"></p>
+    <p>Aqui você poderá ver seus treinos e status da mensalidade.</p>
+    <button onclick="sair()" style="background-color: #ff4444; color: white;">Sair</button>
+  </div>
+
+  <script>
+    const nome = localStorage.getItem('nomeUsuario');
+    document.getElementById('saudacao').innerText = `Olá, ${nome || 'Atleta'}! Vamos treinar? 🏋️‍♂️`;
+
+    function sair() {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>

@@ -16,13 +16,21 @@ document.getElementById('formLogin').addEventListener('submit', async (evento) =
 
     if (resposta.ok) {
       divMensagem.style.color = '#00ff64';
-      divMensagem.innerText = 'Login aprovado!';
+      divMensagem.innerText = 'Login aprovado! Entrando...';
       
-      // Guarda o token no navegador para validar que o usuário está logado
+      // Guarda o token e o nome no navegador
       localStorage.setItem('tokenAcademia', dados.token);
-      
-      // Futuramente, você vai descomentar a linha abaixo para enviar para o painel
-      // window.location.href = 'painel.html';
+      localStorage.setItem('nomeUsuario', dados.user.name);
+
+      // Redireciona com base no cargo (DONO ou CLIENTE)
+      setTimeout(() => {
+        if (dados.role === 'DONO') {
+          window.location.href = 'painel-dono.html';
+        } else {
+          window.location.href = 'painel-cliente.html';
+        }
+      }, 1500);
+
     } else {
       divMensagem.style.color = '#ff4444';
       divMensagem.innerText = dados.error || 'Credenciais inválidas';

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel do Dono - Academia</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container" style="max-width: 600px;">
+    <h2>Painel Administrativo (Dono)</h2>
+    <p id="saudacao" style="font-size: 18px; margin-bottom: 20px;"></p>
+    <p>Aqui você poderá gerenciar alunos, planos e cadastros da academia.</p>
+    <button onclick="sair()" style="background-color: #ff4444; color: white;">Sair</button>
+  </div>
+
+  <script>
+    // Puxa o nome guardado no navegador
+    const nome = localStorage.getItem('nomeUsuario');
+    document.getElementById('saudacao').innerText = `Bem-vindo, ${nome || 'Gestor'}! 💪`;
+
+    function sair() {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
