@@ -46,8 +46,9 @@
     <p style="color: #94a3b8; margin-bottom: 20px;">Pesquise pelo nome da academia para ver os planos.</p>
     
     <div class="search-box">
-      <input type="text" id="input-busca" placeholder="Ex: Gym, Fit, Iron...">
-      <button onclick="buscarAcademias()"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
+      <!-- ID atualizado para 'input-busca-academia' conforme o seu snippet -->
+      <input type="text" id="input-busca-academia" placeholder="Ex: Gym, Fit, Iron...">
+      <button onclick="carregarAcademias(document.getElementById('input-busca-academia').value)"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
     </div>
 
     <div id="resultados-academias" class="grid-cards"></div>
@@ -89,24 +90,50 @@
 
     document.getElementById('nome-aluno').innerText = `Olá, ${nome}`;
 
-    async function buscarAcademias() {
-      // DADOS MOCKADOS (Simulados para teste de front-end)
-      const academiasMock = [
-        { id: '1', name: 'Iron Works Gym' },
-        { id: '2', name: 'Fit Life Studio' }
-      ];
-
+    // Função que desenha os cards reais vindos do banco de dados na tela
+    function renderizarCardsAcademias(academias) {
       const div = document.getElementById('resultados-academias');
       div.innerHTML = '';
       document.getElementById('sessao-planos').style.display = 'none';
 
-      academiasMock.forEach(acad => {
+      if (academias.length === 0) {
+        div.innerHTML = '<p style="color: #94a3b8; grid-column: 1 / -1;">Nenhuma academia encontrada.</p>';
+        return;
+      }
+
+      academias.forEach(acad => {
         div.innerHTML += `
           <div class="card">
-            <h3>${acad.name}</h3>
+            <h3>${acad.name || 'Academia Sem Nome'}</h3>
+            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 10px;">${acad.email}</p>
             <button onclick="verPlanos('${acad.id}', '${acad.name}')">Ver Planos</button>
           </div>
         `;
+      });
+    }
+
+    // Função que dispara quando o cliente digita na busca ou a página abre
+    async function carregarAcademias(termo = '') {
+      try {
+        const resposta = await fetch(`http://localhost:3000/academias?busca=${encodeURIComponent(termo)}`);
+        
+        if (!resposta.ok) {
+          throw new Error('Erro ao buscar academias');
+        }
+
+        const academiasDoBanco = await resposta.json();
+        renderizarCardsAcademias(academiasDoBanco);
+
+      } catch (error) {
+        console.error("Erro de conexão:", error);
+      }
+    }
+
+    // Vincula ao input de pesquisa do cliente em tempo real
+    const inputBusca = document.getElementById('input-busca-academia');
+    if (inputBusca) {
+      inputBusca.addEventListener('input', (e) => {
+        carregarAcademias(e.target.value);
       });
     }
 
@@ -115,7 +142,7 @@
       document.getElementById('sessao-planos').style.display = 'block';
       document.getElementById('titulo-planos').innerText = `Planos de ${nomeAcademia}`;
 
-      // DADOS MOCKADOS (Simulados)
+      // (Futuramente você pode substituir este mock de planos por uma rota GET /planos?donoId=${idAcademia})
       const planosMock = [
         { id: 'p1', nome: 'Plano Mensal', preco: 'R$ 99,90', descricao: 'Acesso livre' },
         { id: 'p2', nome: 'Plano Anual', preco: 'R$ 890,00', descricao: 'Acesso total' }
@@ -138,7 +165,7 @@
 
     function voltarBusca() {
       document.getElementById('sessao-planos').style.display = 'none';
-      buscarAcademias();
+      carregarAcademias();
     }
 
     function abrirModal(nomePlano, preco) {
@@ -164,6 +191,9 @@
       localStorage.clear();
       window.location.href = 'index.html';
     }
+
+    // Carrega todas as academias reais do banco ao abrir a página pela primeira vez
+    carregarAcademias();
   </script>
 </body>
 </html>
