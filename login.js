@@ -1,3 +1,47 @@
+function irParaPainel(role) {
+  if (role === 'SUPER') {
+    window.location.replace('painel-super.html');
+  } else if (role === 'DONO') {
+    window.location.replace('painel-dono.html');
+  } else {
+    window.location.replace('painel-cliente.html');
+  }
+}
+
+// MANTER CONECTADO: se já existe um token salvo e o servidor confirma que ele vale,
+// pula a tela de login e vai direto para o painel
+(async () => {
+  const tokenSalvo = localStorage.getItem('token');
+  if (!tokenSalvo || tokenSalvo === 'null' || tokenSalvo === 'undefined') return;
+
+  try {
+    const resposta = await fetch('http://localhost:3000/sessao', {
+      headers: { Authorization: `Bearer ${tokenSalvo}` }
+    });
+
+    if (resposta.ok) {
+      const dados = await resposta.json();
+      localStorage.setItem('token', dados.token);
+      localStorage.setItem('role', dados.role);
+      localStorage.setItem('nomeUsuario', dados.user.name || '');
+      irParaPainel(dados.role);
+    } else if (resposta.status === 401) {
+      localStorage.clear(); // Token vencido ou conta removida
+    }
+  } catch (erro) {
+    // Servidor fora do ar: fica na tela de login sem apagar a sessão
+  }
+})();
+
+// Se o usuário foi deslogado automaticamente, mostra o motivo
+const motivoSaida = sessionStorage.getItem('motivoSaida');
+if (motivoSaida) {
+  sessionStorage.removeItem('motivoSaida');
+  const aviso = document.getElementById('mensagem');
+  aviso.className = 'form-msg erro';
+  aviso.innerText = motivoSaida;
+}
+
 document.getElementById('formLogin').addEventListener('submit', async (evento) => {
   evento.preventDefault();
 
@@ -30,15 +74,7 @@ document.getElementById('formLogin').addEventListener('submit', async (evento) =
       localStorage.setItem('nomeUsuario', dados.user.name || '');
 
       // 🌟 Redireciona corretamente com base no cargo (SUPER, DONO ou CLIENTE)
-      setTimeout(() => {
-        if (dados.role === 'SUPER') {
-          window.location.href = 'painel-super.html';
-        } else if (dados.role === 'DONO') {
-          window.location.href = 'painel-dono.html';
-        } else {
-          window.location.href = 'painel-cliente.html';
-        }
-      }, 600);
+      setTimeout(() => irParaPainel(dados.role), 600);
       return;
     }
 

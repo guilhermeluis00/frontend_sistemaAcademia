@@ -8,8 +8,10 @@ const sessao = {
   nome: localStorage.getItem('nomeUsuario') || '',
 };
 
-function sair() {
+// Encerra a sessão. Quando a saída não foi pedida pelo usuário, o motivo é mostrado na tela de login.
+function sair(motivo) {
   localStorage.clear();
+  if (typeof motivo === 'string') sessionStorage.setItem('motivoSaida', motivo);
   window.location.replace('index.html');
 }
 
@@ -18,9 +20,29 @@ function exigirLogin(...cargos) {
   const tokenValido = sessao.token && sessao.token !== 'null' && sessao.token !== 'undefined';
 
   if (!tokenValido || !cargos.includes(sessao.role)) {
-    localStorage.clear();
-    window.location.replace('index.html');
+    sair(tokenValido
+      ? `Esta página é restrita a ${cargos.join(' ou ')} e sua conta é ${sessao.role}.`
+      : 'Nenhuma sessão salva neste navegador. Faça login.');
     throw new Error('Acesso negado.');
+  }
+
+  manterConectado();
+}
+
+// MANTER CONECTADO: confirma a sessão no servidor e guarda o token renovado.
+// Se o token não valer mais, o próprio api() desloga (resposta 401).
+async function manterConectado() {
+  try {
+    const dados = await api('/sessao');
+
+    sessao.token = dados.token;
+    sessao.nome = dados.user.name || '';
+    localStorage.setItem('token', dados.token);
+    localStorage.setItem('nomeUsuario', sessao.nome);
+    document.querySelectorAll('[data-usuario-nome]').forEach((el) => { el.textContent = sessao.nome; });
+    document.querySelectorAll('[data-usuario-iniciais]').forEach((el) => { el.textContent = iniciais(sessao.nome); });
+  } catch (erro) {
+    // Servidor fora do ar: mantém a sessão salva e tenta de novo na próxima página
   }
 }
 
@@ -46,7 +68,7 @@ async function api(caminho, { method = 'GET', body, signal } = {}) {
   const dados = await resposta.json().catch(() => ({}));
 
   if (resposta.status === 401 && sessao.token) {
-    sair();
+    sair(`${dados.error || 'Sessão recusada pelo servidor.'} (${method} ${caminho})`);
   }
   if (!resposta.ok) {
     throw new Error(dados.error || 'Algo deu errado. Tente novamente.');
