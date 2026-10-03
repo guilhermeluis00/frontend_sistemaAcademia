@@ -4,6 +4,12 @@ document.getElementById('formLogin').addEventListener('submit', async (evento) =
   const email = document.getElementById('email').value;
   const password = document.getElementById('senha').value;
   const divMensagem = document.getElementById('mensagem');
+  const botao = evento.target.querySelector('button[type="submit"]');
+
+  botao.disabled = true;
+  botao.innerText = 'Entrando...';
+  divMensagem.className = 'form-msg';
+  divMensagem.innerText = '';
 
   try {
     const resposta = await fetch('http://localhost:3000/login', {
@@ -15,13 +21,13 @@ document.getElementById('formLogin').addEventListener('submit', async (evento) =
     const dados = await resposta.json();
 
     if (resposta.ok) {
-      divMensagem.style.color = '#00ff64';
+      divMensagem.className = 'form-msg ok';
       divMensagem.innerText = 'Login aprovado! Entrando...';
-      
+
       // 🌟 Salva o token, o cargo (role) e o nome no navegador
       localStorage.setItem('token', dados.token);
       localStorage.setItem('role', dados.role);
-      localStorage.setItem('nomeUsuario', dados.user.name);
+      localStorage.setItem('nomeUsuario', dados.user.name || '');
 
       // 🌟 Redireciona corretamente com base no cargo (SUPER, DONO ou CLIENTE)
       setTimeout(() => {
@@ -32,14 +38,17 @@ document.getElementById('formLogin').addEventListener('submit', async (evento) =
         } else {
           window.location.href = 'painel-cliente.html';
         }
-      }, 1500);
-
-    } else {
-      divMensagem.style.color = '#ff4444';
-      divMensagem.innerText = dados.error || 'Credenciais inválidas';
+      }, 600);
+      return;
     }
+
+    divMensagem.className = 'form-msg erro';
+    divMensagem.innerText = dados.error || 'Credenciais inválidas';
   } catch (erro) {
-    divMensagem.style.color = '#ff4444';
+    divMensagem.className = 'form-msg erro';
     divMensagem.innerText = 'Erro de conexão com o servidor.';
   }
+
+  botao.disabled = false;
+  botao.innerText = 'Entrar';
 });

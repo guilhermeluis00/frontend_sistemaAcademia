@@ -3,58 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel do Super Administrador</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Sistema Fit - Super Administrador</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-    body { background-color: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; }
-    header { background-color: #1e293b; border-bottom: 1px solid #334155; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
-    header h1 { font-size: 22px; color: #38bdf8; display: flex; align-items: center; gap: 10px; }
-    .btn-sair { background-color: transparent; color: #ef4444; border: 1px solid #ef4444; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
-    .btn-sair:hover { background-color: #ef4444; color: white; }
-    .container { max-width: 1200px; margin: 40px auto; width: 100%; padding: 0 20px; }
-    .welcome-card { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-radius: 12px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
-    .welcome-card h2 { font-size: 28px; margin-bottom: 8px; }
-    .welcome-card p { color: #e0f2fe; font-size: 16px; }
-    .card-section { background-color: #1e293b; border-radius: 12px; border: 1px solid #334155; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-    .section-header { padding: 20px 25px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
-    table { width: 100%; border-collapse: collapse; text-align: left; }
-    th, td { padding: 16px 25px; border-bottom: 1px solid #334155; font-size: 14px; }
-    th { background-color: #0f172a; color: #94a3b8; font-weight: 600; }
-    tr:hover { background-color: #273548; }
-    .badge-super { background-color: #22c55e20; color: #22c55e; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-    .badge-dono { background-color: #38bdf820; color: #38bdf8; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-    .btn-delete { background-color: transparent; color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
-    .btn-delete:hover { background-color: #ef4444; color: white; }
-  </style>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+  <script src="super.js" defer></script>
 </head>
 <body>
 
-  <header>
-    <h1><i class="fa-solid fa-shield-halved"></i> Master Control</h1>
-    <div>
-      <span id="nome-super" style="margin-right: 15px; color: #94a3b8;"></span>
-      <button class="btn-sair" onclick="sair()"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
+  <header class="topbar">
+    <a class="brand" href="painel-super.html">
+      <span class="brand-mark"><i class="fa-solid fa-shield-halved"></i></span>
+      <span>Sistema Fit<small>Master Control</small></span>
+    </a>
+
+    <div class="topbar-user">
+      <div class="user-chip">
+        <div class="avatar avatar-sm" data-usuario-iniciais></div>
+        <span data-usuario-nome></span>
+      </div>
+      <button class="btn btn-ghost btn-sm" data-sair><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
     </div>
   </header>
 
-  <div class="container">
-    <div class="welcome-card">
-      <h2 id="saudacao">Bem-vindo ao Controle Central 👑</h2>
-      <p>Gerenciamento de contas de Donos de Academia.</p>
+  <main class="page">
+    <div class="page-head">
+      <div>
+        <h1 id="saudacao">Controle central</h1>
+        <p>Gerenciamento de contas de donos de academia.</p>
+      </div>
     </div>
 
-    <div class="card-section">
-      <div class="section-header">
-        <h3><i class="fa-solid fa-users"></i> Donos de Academia Cadastrados</h3>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-icon"><i class="fa-solid fa-building"></i></div>
+        <div><span>Academias</span><strong id="stat-donos">—</strong></div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon info"><i class="fa-solid fa-tags"></i></div>
+        <div><span>Planos cadastrados</span><strong id="stat-planos">—</strong></div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon warn"><i class="fa-solid fa-id-card"></i></div>
+        <div><span>Matrículas</span><strong id="stat-matriculas">—</strong></div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-head">
+        <h2><i class="fa-solid fa-users"></i> Contas cadastradas</h2>
+        <div class="input-icon">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" class="input" id="filtro-usuarios" placeholder="Filtrar por nome ou e-mail" aria-label="Filtrar contas">
+        </div>
       </div>
       <table>
         <thead>
           <tr>
             <th>Nome</th>
-            <th>E-mail</th>
             <th>Cargo</th>
+            <th>Planos</th>
+            <th>Matrículas</th>
             <th>Cadastro</th>
             <th>Ações</th>
           </tr>
@@ -62,63 +72,7 @@
         <tbody id="tabela-usuarios"></tbody>
       </table>
     </div>
-  </div>
+  </main>
 
-  <script>
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
-    const nome = localStorage.getItem('nomeUsuario') || 'Administrador';
-
-    // SEGURANÇA: Verifica o cargo
-    if (!token || role !== 'SUPER') {
-      alert('Acesso negado. Área restrita.');
-      window.location.href = 'index.html';
-    }
-
-    document.getElementById('nome-super').innerText = `Olá, ${nome}`;
-    document.getElementById('saudacao').innerText = `Bem-vindo, ${nome}! 👑`;
-
-    async function carregarUsuarios() {
-      try {
-        const resposta = await fetch('http://localhost:3000/super/users', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const usuarios = await resposta.json();
-        const tbody = document.getElementById('tabela-usuarios');
-        tbody.innerHTML = '';
-
-        usuarios.forEach(user => {
-          const tr = document.createElement('tr');
-          const data = new Date(user.created_at).toLocaleDateString('pt-BR');
-          tr.innerHTML = `
-            <td>${user.name || 'Sem nome'}</td>
-            <td>${user.email}</td>
-            <td>${user.is_super_admin ? '<span class="badge-super">SUPER</span>' : '<span class="badge-dono">DONO</span>'}</td>
-            <td>${data}</td>
-            <td>${user.is_super_admin ? '-' : `<button class="btn-delete" onclick="deletarUsuario('${user.id}')"><i class="fa-solid fa-trash"></i> Excluir</button>`}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-      } catch (error) { console.error(error); }
-    }
-
-    async function deletarUsuario(id) {
-      if (confirm('Excluir esta conta de dono?')) {
-        try {
-          const res = await fetch(`http://localhost:3000/super/users/${id}`, {
-            method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (res.ok) { carregarUsuarios(); } else { alert('Erro ao deletar.'); }
-        } catch (error) { alert('Erro de conexão.'); }
-      }
-    }
-
-    function sair() {
-      localStorage.clear();
-      window.location.href = 'index.html';
-    }
-
-    carregarUsuarios();
-  </script>
 </body>
 </html>
